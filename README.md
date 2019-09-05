@@ -17,7 +17,10 @@ The server side project written in python/flask/sqlalchemy is
 
 # improvments left.
 
-I stored the timestaps as epoch numbers. This makes it easy to do a
+Some CSS would be nice. I'm not sure it makes too much since here.
+Feel free to knock yourself out. Maybe I'll add a little.  On verra.
+
+I stored the timestamps as epoch numbers. This makes it easy to do a
 lot of different things easily with the dates. But I never got around
 to adding a render function to the timestamp column in the history
 table.  They show nicely on the graphs though.
@@ -26,15 +29,19 @@ There are a few things which I would extract out of this to make more
 useful react components.  The charts could be made much more generic
 and reusable.  The component is reusable, but creating the data for
 the chart is a matter of creating a datastructure with all the right
-settings.  Still it works fine. And my goal here was to just create 
+settings. I think that a refactor is needed for the chart data translate,
+it could be simpler. Still it works fine. And my goal here was to just create 
 a UI not a set of reusable libraries.
 
 I could also do more with co-effects and interceptors but thats not
-a path I want to take at the moment.
+a path I need to take at the moment.
 
 Testing is reasonable.  I could go further, but there really isn't much
-to test. Some scenarios with sequences of event dispatches could be
-interesting.
+to test. subscriptions are all direct, the views do almost nothing, I don't 
+see any reason to make sure hiccup is working. events are mostly very
+simple assigments mostly. Some scenarios with sequences of event dispatches could be
+interesting to ensure the behaviors of the interface stay consistent as things change,
+as if they would for this silly thing. 
 
 
 # these are the goals.  On verra.
