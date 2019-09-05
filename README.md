@@ -15,8 +15,14 @@ Both Bonus features listed in the goals below are present.
 The server side project written in python/flask/sqlalchemy is 
 [here](http://github.com/ericgebhart/product-inventory.git).
 
+# improvments left.
 
-There are a few things which I would extract out of this to make 
+I stored the timestaps as epoch numbers. This makes it easy to do a
+lot of different things easily with the dates. But I never got around
+to adding a render function to the timestamp column in the history
+table.  They show nicely on the graphs though.
+
+There are a few things which I would extract out of this to make more
 useful react components.  The charts could be made much more generic
 and reusable.  The component is reusable, but creating the data for
 the chart is a matter of creating a datastructure with all the right
@@ -25,6 +31,10 @@ a UI not a set of reusable libraries.
 
 I could also do more with co-effects and interceptors but thats not
 a path I want to take at the moment.
+
+Testing is reasonable.  I could go further, but there really isn't much
+to test. Some scenarios with sequences of event dispatches could be
+interesting.
 
 
 # these are the goals.  On verra.
