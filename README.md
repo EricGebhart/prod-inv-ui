@@ -43,6 +43,8 @@ simple assigments mostly. Some scenarios with sequences of event dispatches coul
 interesting to ensure the behaviors of the interface stay consistent as things change,
 as if they would for this silly thing. 
 
+I would like to have an example of using dispatch-sync in a test.
+
 
 # these are the goals.  On verra.
 
