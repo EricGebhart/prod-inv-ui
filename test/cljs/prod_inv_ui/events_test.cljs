@@ -1,4 +1,4 @@
-(ns prod-inv-ui.events
+(ns prod-inv-ui.events-test
   (:require [prod-inv-ui.events :as sut]
             [prod-inv-ui.subs :as subs]
             [re-frame :refer [dispatch-sync subscribe]]
