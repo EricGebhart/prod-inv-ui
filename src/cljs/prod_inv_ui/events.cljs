@@ -10,6 +10,11 @@
 
 (def product-names ["foo" "bar" "baz" "green eggs" "ham" "spam"])
 
+(defn assoc-in-multi [m path keys values]
+  (reduce #(assoc-in %1 (into path (key %2)) (val %2))
+          m
+          (zipmap keys values)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Build line charts from data.
 ;; Would be nice to re-factor into a more useful charting function.
@@ -101,16 +106,15 @@
             (let [use-server (:use-server db)]
               (if (nil? use-server)
                 (let [inv (gen-inventory product-names)]
-                  (assoc db
-                         :inventory inv
-                         :prod-choices (unique-products inv)
-                         :selected-id nil
-                         :selected-item nil
-                         :selected-qty nil
-                         :selected-qty nil
-                         :selected-hist nil
-                         :single-line-chart nil
-                         :multi-line-chart nil))
+                  (-> db
+                      (assoc :inventory inv
+                             :prod-choices (unique-products inv)
+                             :multi-line-chart nil)
+                      (assoc-in  [:selected :id] nil)
+                      (assoc-in  [:selected :item] nil)
+                      (assoc-in  [:selected :qty] nil)
+                      (assoc-in  [:selected :hist] nil)
+                      (assoc-in  [:selected :line-chart] nil)))
                 (do (dispatch [:http-inventory])
                     db)))))
 
@@ -118,7 +122,6 @@
  ::initialize-db
  (fn-traced [_ _]
             (let [inv (gen-inventory product-names)]
-              (println inv)
               (assoc db/default-db
                      :inventory inv
                      :prod-choices (unique-products inv)))))
@@ -165,32 +168,32 @@
 (reg-event-db
  ::failure-http-result
  (fn [db [_ result]]
-   (assoc db
-          :failure-result result
-          :show-twirly nil)))
+   (-> db
+       (assoc :show-twirly nil)
+       (assoc-in [:server :failure-result] result))))
 
 (reg-event-db
  ::success-post-result
  (fn [db [_ result]]
    (let [new-inv (conj (:inventory db) result)]
-     (dispatch [::single-selected-hist (:selected-id db)])
-     (assoc db
-            :result result
-            :inventory (into [result] (:inventory db))
-            :selected-item result
-            :show-twirly nil))))
+     (dispatch [::single-selected-hist (get-in db [:selected :id])])
+     (-> db
+         (assoc :inventory (into [result] (:inventory db))
+                :show-twirly nil)
+         (assoc-in [:selected :item] result)
+         (assoc-in [:server :result] result)))))
 
 (reg-event-db
  ::failure-post-result
  (fn [db [_ result]]
-   (assoc db
-          :failure-result result
-          :show-twirly nil)))
+   (-> db
+       (assoc :show-twirly nil)
+       (assoc-in [:server :failure-result] result))))
 
 (reg-event-db
  ::reset-failure
  (fn [db [_ _]]
-   (assoc db :failure-result nil)))
+   (assoc-in db [:server :failure-result] nil)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;   The usual db manipulation events.
@@ -213,52 +216,52 @@
             (let [item (item-for-id db new-prod-selection)
                   qty (:inventory_level item)]
               (dispatch [::single-selected-hist new-prod-selection])
-              (assoc db
-                     :selected-item item
-                     :selected-qty qty
-                     :selected-id new-prod-selection))))
+              (-> db
+                  (assoc-in [:selected :item] item)
+                  (assoc-in [:selected :qty] qty)
+                  (assoc-in [:selected :id] new-prod-selection)))))
 
 ;; set the product history and build a chart.
 (reg-event-db
  ::single-selected-hist
  (fn-traced [db [_ id]]
             (let [selected-hist (filter #(= id (:id %) ) (:inventory db))]
-              (assoc db
-                     :selected-hist selected-hist
-                     :single-line-chart (-> selected-hist
-                                            build-single-chart-series
-                                            line-chart-data)))))
+              (-> db
+                  (assoc-in [:selected :history] selected-hist)
+                  (assoc-in [:selected :line-chart] (-> selected-hist
+                                                        build-single-chart-series
+                                                        line-chart-data))))))
 
 (reg-event-db
  ::use-server
  (fn-traced [db [_ use-server]]
-            (assoc db :use-server use-server)))
+            (assoc-in db [:server :use] use-server)))
 
 (reg-event-db
  ::change-server-path
  (fn-traced [db [_ server-path]]
-            (assoc db :server-path server-path)))
+            (assoc-in db [:server :path] server-path)))
 
 (reg-event-db
  ::qty-changed
  (fn-traced [db [_ qty]]
-            (assoc db :selected-qty (int qty))))
+            (assoc-in db [:selected :qty] (int qty))))
 
 ;; I'm sure theres a more idiomatic way to do this.
 (reg-event-db
  ::update-inv-level
  (fn-traced [db [_ new-level]]
             (let [use-server (:use-server db)
-                  item (:selected-item db)
+                  item (get-in db [:selected :item])
                   name (:name item)
                   id (:id item)
-                  qty (:selected-qty db)
+                  qty (get-in db [:selected :qty])
                   new-item (into item {:inventory_level qty :timestamp (str (time/now))})]
               (if (nil? use-server)
                 (do (dispatch [::single-selected-hist id])
-                    (assoc db
-                           :inventory (into [new-item] (:inventory db))
-                           :selected-item new-item))
+                    (-> db
+                        (assoc :inventory (into [new-item] (:inventory db)))
+                        (assoc-in [:selected :item] new-item)))
                 (do (dispatch [::http-add {:name name :id id :inventory_level qty}])
                     db)))))
 

@@ -3,21 +3,27 @@
 
 (def default-db
   {
-   :selected-view "single"
-   :selected-id nil
-   :selected-item nil
-   :selected-qty nil
-   :selected-hist nil
-   :prod-choices nil
-   :selected-group nil
    :inventory nil
-   :remote-server-path "http://localhost:5000/"
-   :use-server nil
+   :prod-choices nil
+
+   :selected-view "single"
+
+   :selected {:id nil
+              :item nil
+              :qty nil
+              :history nil
+              :line-chart nil}
+
+
+   :server {:use nil
+            :path "http://localhost:5000/"
+            :failure-result nil
+            :result nil}
+
    :show-twirly nil
-   :failure-result nil
-   :result nil
-   :single-line-chart nil
+
    :multi-line-chart nil
+
    :test-chart {:chart {:type   :bar}
                 :title  {:text "Chart title here"}
                 :xAxis  {:categories ["Apples", "Bananas", "Oranges"]}

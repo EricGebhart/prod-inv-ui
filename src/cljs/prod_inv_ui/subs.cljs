@@ -2,45 +2,31 @@
   (:require
    [re-frame.core :as re-frame]))
 
-(re-frame/reg-sub
- ::name
- (fn [db]
-   (:name db)))
-
-(re-frame/reg-sub
- ::test
- (fn [db]
-   (:test db)))
 
 (re-frame/reg-sub
  ::selected-id
  (fn [db]
-   (:selected-id db)))
+   (get-in db [:selected :id])))
 
 (re-frame/reg-sub
  ::selected-item
  (fn [db]
-   (:selected-item db)))
+   (get-in db [:selected :item])))
 
 (re-frame/reg-sub
  ::selected-qty
  (fn [db]
-   (:selected-qty db)))
+   (get-in db [:selected :qty])))
 
 (re-frame/reg-sub
  ::selected-hist
  (fn [db]
-   (:selected-hist db)))
+   (get-in db [:selected :history])))
 
 (re-frame/reg-sub
  ::prod-choices
  (fn [db]
    (:prod-choices db)))
-
-(re-frame/reg-sub
- ::selected-group
- (fn [db]
-   (:selected-group db)))
 
 (re-frame/reg-sub
  ::inventory
@@ -55,17 +41,17 @@
 (re-frame/reg-sub
  ::use-server
  (fn [db]
-   (:use-server db)))
+   (get-in db [:server :use])))
 
 (re-frame/reg-sub
  ::remote-server-path
  (fn [db]
-   (:remote-server-path db)))
+   (get-in db [:server :path])))
 
 (re-frame/reg-sub
  ::failure-result
  (fn [db]
-   (:failure-result db)))
+   (get-in db [:server :failure-result])))
 
 (re-frame/reg-sub
  ::show-twirly
@@ -75,7 +61,7 @@
 (re-frame/reg-sub
  ::single-line-chart
  (fn [db]
-   (:single-line-chart db)))
+   (get-in db [:selected :line-chart])))
 
 (re-frame/reg-sub
  ::multi-line-chart
