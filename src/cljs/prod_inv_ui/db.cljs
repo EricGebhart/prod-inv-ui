@@ -15,7 +15,7 @@
               :line-chart nil}
 
 
-   :server {:use nil
+   :server {:use false
             :path "http://localhost:5000/"
             :failure-result nil
             :result nil}

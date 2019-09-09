@@ -10,11 +10,6 @@
 
 (def product-names ["foo" "bar" "baz" "green eggs" "ham" "spam"])
 
-(defn assoc-in-multi [m path keys values]
-  (reduce #(assoc-in %1 (into path (key %2)) (val %2))
-          m
-          (zipmap keys values)))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Build line charts from data.
 ;; Would be nice to re-factor into a more useful charting function.
@@ -97,24 +92,27 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;   initialize the db events.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn reset-interface [db]
+  (-> db
+      (assoc-in  [:selected :id] nil)
+      (assoc-in  [:selected :item] nil)
+      (assoc-in  [:selected :qty] nil)
+      (assoc-in  [:selected :history] nil)
+      (assoc-in  [:selected :line-chart] nil)
+      (assoc  :multi-line-chart nil)))
 
 ;; switching between server and non-server modes.
 ;; reinitialize the inventory
 (reg-event-db
  ::re-initialize-db
  (fn-traced [db _]
-            (let [use-server (:use-server db)]
-              (if (nil? use-server)
+            (let [use-server (get-in db [:server :use] db)]
+              (if (= use-server false)
                 (let [inv (gen-inventory product-names)]
                   (-> db
+                      reset-interface
                       (assoc :inventory inv
-                             :prod-choices (unique-products inv)
-                             :multi-line-chart nil)
-                      (assoc-in  [:selected :id] nil)
-                      (assoc-in  [:selected :item] nil)
-                      (assoc-in  [:selected :qty] nil)
-                      (assoc-in  [:selected :hist] nil)
-                      (assoc-in  [:selected :line-chart] nil)))
+                             :prod-choices (unique-products inv))))
                 (do (dispatch [:http-inventory])
                     db)))))
 
@@ -134,7 +132,7 @@
 (reg-event-fx                           ;; note the trailing -fx
  :http-inventory                        ;; usage:  (dispatch [:http-inventory])
  (fn [{:keys [db]} [_ _]]                    ;; the first param will be "world"
-   (let [server (str (:remote-server-path db) "api/products")]
+   (let [server (str (get-in db [:server :path]) "api/products")]
      {:db   (assoc db :show-twirly true)   ;; causes the twirly-waiting-dialog to show??
       :http-xhrio {:method          :get
                    :uri             server
@@ -146,7 +144,7 @@
 (reg-event-fx
  ::http-add
  (fn [{:keys [db]} [_ new-item]]
-   (let [server (str (:remote-server-path db) "api/products")]
+   (let [server (str (get-in db [:server :path] db) "api/products")]
      {:db (assoc db :show-twirly true)  ;; We don't need this if we operate optimistically.
       :http-xhrio {:method          :post
                    :uri             server
@@ -160,10 +158,10 @@
 (reg-event-db
  ::success-http-result
  (fn [db [_ result]]
-   (assoc db
-          :inventory result
-          :prod-choices (unique-products result)
-          :show-twirly nil)))
+   (reset-interface (assoc db
+                           :inventory result
+                           :prod-choices (unique-products result)
+                           :show-twirly nil))))
 
 (reg-event-db
  ::failure-http-result
@@ -225,12 +223,13 @@
 (reg-event-db
  ::single-selected-hist
  (fn-traced [db [_ id]]
-            (let [selected-hist (filter #(= id (:id %) ) (:inventory db))]
+            (let [selected-hist (filter #(= id (:id %) ) (:inventory db))
+                  line-chart (-> selected-hist
+                                 build-single-chart-series
+                                 line-chart-data)]
               (-> db
                   (assoc-in [:selected :history] selected-hist)
-                  (assoc-in [:selected :line-chart] (-> selected-hist
-                                                        build-single-chart-series
-                                                        line-chart-data))))))
+                  (assoc-in [:selected :line-chart] line-chart)))))
 
 (reg-event-db
  ::use-server
@@ -251,7 +250,7 @@
 (reg-event-db
  ::update-inv-level
  (fn-traced [db [_ new-level]]
-            (let [use-server (:use-server db)
+            (let [use-server (get-in db [:server :use])
                   item (get-in db [:selected :item])
                   name (:name item)
                   id (:id item)
