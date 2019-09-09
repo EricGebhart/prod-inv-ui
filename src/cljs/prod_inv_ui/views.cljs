@@ -1,6 +1,8 @@
 (ns prod-inv-ui.views
   (:require
    [re-frame.core :as rf]
+   [cljs-time.coerce :as tc]
+   [cljs-time.format :as tf]
    [reagent.core :as r]
    [re-com.core
     :refer [h-box v-box box gap single-dropdown radio-button button alert-box
@@ -244,7 +246,10 @@
     {::dt/column-key   [:name]
      ::dt/column-label "Name"}
     {::dt/column-key   [:timestamp]
-     ::dt/column-label "Timestamp"}
+     ::dt/column-label "Timestamp"
+     ::dt/render-fn (fn [ts] (tf/unparse
+                             (tf/formatters :date-time)
+                             (tc/from-long ts)))}
     {::dt/column-key   [:inventory_level]
      ::dt/column-label "Quantity"}]
    {::dt/table-classes ["ui" "table" "celled"]}])

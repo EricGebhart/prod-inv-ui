@@ -17,13 +17,19 @@ The server side project written in python/flask/sqlalchemy is
 
 # improvments left.
 
-Some CSS would be nice. I'm not sure it makes too much since here.
+Some CSS would be nice. I'm not sure it makes too much sense here.
 Feel free to knock yourself out. Maybe I'll add a little.  On verra.
 
 I stored the timestamps as epoch numbers. This makes it easy to do a
-lot of different things easily with the dates. But I never got around
-to adding a render function to the timestamp column in the history
-table.  They show nicely on the graphs though.
+lot of different things easily with the dates. 
+
+The graphs want epoch numbers so that was easy. And it's easy to convert 
+them back into dates which can be manipulated easily.  The re-frame-datatable
+takes a render function so I just turned it back into a date and formated it 
+right there into a basic date-time format.  I think the same thing would have 
+happened if I just converted it to a string.  But there are a lot of formats 
+to choose from and this code would handle that.
+
 
 There are a few things which I would extract out of this to make more
 useful react components.  The charts could be made much more generic
