@@ -2,8 +2,7 @@
 
 
 (def default-db
-  {
-   :inventory nil
+  {:inventory nil
    :prod-choices nil
 
    :selected-view "single"
@@ -22,11 +21,4 @@
 
    :show-twirly nil
 
-   :multi-line-chart nil
-
-   :test-chart {:chart {:type   :bar}
-                :title  {:text "Chart title here"}
-                :xAxis  {:categories ["Apples", "Bananas", "Oranges"]}
-                :yAxis  {:title {:text "Fruit eaten"}}
-                :series [{:name "Jane" :data [1, 0, 4]}
-                         {:name "John" :data [5, 7, 3]}]}})
+   :multi-line-chart nil})

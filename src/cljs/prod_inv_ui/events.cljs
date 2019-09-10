@@ -4,6 +4,7 @@
    [cljs-time.coerce :as tc]
    [re-frame.core :refer [reg-event-db reg-event-fx dispatch subscribe]]
    [prod-inv-ui.db :as db]
+   [prod-inv-ui.chart :as chart]
    [day8.re-frame.tracing :refer-macros [fn-traced defn-traced]]
    [ajax.core :as ajax]
    [day8.re-frame.http-fx]))
@@ -11,30 +12,8 @@
 (def product-names ["foo" "bar" "baz" "green eggs" "ham" "spam"])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Build line charts from data.
-;; Would be nice to re-factor into a more useful charting function.
+;; Build line chart data.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(def line-chart
-  {:chart {:type   :spline}
-   :title  {:text "Product inventory level"}
-   :subtitle {:text "irregular time data"}
-   :xAxis  {:type "datetime"
-            :dateTimeLabelFormats {:month "%e. %b" :year "%b"}
-            :title {:text "Date"}}
-   :yAxis  {:title {:text "Inventory Level"}
-            :min 0}
-   :tooltip {:headerFormat "<b> {series.name} </b><br>"
-             :pointFormat "{:point.x %e. %b} {:point.y .2f} m"
-             }
-   :plotOptions {:spline {:marker {:enabled true}}},
-   :colors ["#6CF", "#39F", "#06C", "#036", "#000"],
-   :series [{:name "Jane" :data [1, 0, 4]}
-            {:name "John" :data [5, 7, 3]}]})
-
-(defn line-chart-data
-  "put the data into the line chart template"
-  [data]
-  (assoc line-chart :series data))
 
 (defn build-chart-series-entry
   "create a chart series entry from a product history record."
@@ -226,7 +205,7 @@
             (let [selected-hist (filter #(= id (:id %) ) (:inventory db))
                   line-chart (-> selected-hist
                                  build-single-chart-series
-                                 line-chart-data)]
+                                 chart/line-chart-data)]
               (-> db
                   (assoc-in [:selected :history] selected-hist)
                   (assoc-in [:selected :line-chart] line-chart)))))
@@ -271,4 +250,4 @@
             (assoc db :multi-line-chart
                    (->> (map :id items)
                         (build-multi-chart-series (:inventory db))
-                        line-chart-data))))
+                        chart/line-chart-data))))

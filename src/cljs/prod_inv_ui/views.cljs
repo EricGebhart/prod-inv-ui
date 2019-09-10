@@ -3,39 +3,13 @@
    [re-frame.core :as rf]
    [cljs-time.coerce :as tc]
    [cljs-time.format :as tf]
-   [reagent.core :as r]
    [re-com.core
     :refer [h-box v-box box gap single-dropdown radio-button button alert-box
             input-text checkbox label title hyperlink-href p p-span throbber]]
    [prod-inv-ui.subs :as subs]
    [prod-inv-ui.events :as events]
    [re-frame-datatable.core :as dt]
-   ["highcharts" :as hc]))
-
-
-;;  A reagent highcharts component.
-
-(defn mount-chart [comp]
-  (hc/chart (r/dom-node comp) (clj->js (r/props comp))))
-
-(defn update-chart [comp]
-  (mount-chart comp))
-
-(defn chart-inner []
-  (r/create-class
-   {:component-did-mount   mount-chart
-    :component-did-update  update-chart
-    :reagent-render        (fn [comp] [:div])}))
-
-(defn chart-outer [config]
-  [chart-inner @config])
-
-(defn view-chart
-  [subs]
-  (let [chart-data (rf/subscribe subs)]
-    (when (some? @chart-data)
-      (fn []
-        [chart-inner @chart-data]))))
+   [prod-inv-ui.chart :as chart]))
 
 ;; basic form.
 
@@ -271,8 +245,7 @@
                    :gap "10px"
                    :children [[add-new-inventory-level]
                               [product-history-table]]])
-                ;;[test-chart]
-                [view-chart [::subs/single-line-chart]]]]))
+                [chart/view-chart [::subs/single-line-chart]]]]))
 
 (defn multi-view
   "Show a table of selectable products and a line chart of their inventory history."
@@ -280,7 +253,7 @@
   [v-box
    :children [[product-multi-select]
               [selected-rows-preview]
-              [view-chart [::subs/multi-line-chart]]]])
+              [chart/view-chart [::subs/multi-line-chart]]]])
 
 (defn show-view
   "show either a single product selection view or a multiple product selection view"
